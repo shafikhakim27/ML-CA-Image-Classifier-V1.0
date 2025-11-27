@@ -27,9 +27,9 @@ REM Install dependencies
 echo Installing dependencies...
 pip install -r requirements.txt
 
-REM Run Python script (can be customized as needed)
+REM Run the main training script
 echo.
-echo Running Fruit Classifier...
-python -c "import sys; sys.path.insert(0, '%PROJECT_ROOT%\src'); print('Environment ready. Run your training script now.')"
+echo Running Fruit Classifier Training Pipeline...
+python "%PROJECT_ROOT%\src\main.py"
 
 pause
