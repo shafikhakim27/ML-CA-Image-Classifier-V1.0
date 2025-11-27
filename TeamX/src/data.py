@@ -1,6 +1,7 @@
 """
 Data loading and preprocessing module.
 Handles loading, splitting, and augmenting image data.
+Uses relative paths via config.py for cross-platform compatibility.
 """
 
 import numpy as np

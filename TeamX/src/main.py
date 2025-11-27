@@ -16,8 +16,11 @@ from tensorflow.keras.utils import to_categorical
 # Import project modules
 from config import DATA_DIR, NUM_CLASSES, SEED, EPOCHS, BATCH_SIZE
 from data import load_images_from_flat_directory, preprocess_images
-from model import create_cnn_model, create_transfer_learning_model
-from train import train_model, save_training_history, create_experiment_directory
+from model import (
+    create_cnn_model, create_transfer_learning_model,
+    load_data_generators, compute_class_weights
+)
+from train import train_model, train_model_with_generators, save_training_history, create_experiment_directory
 from evaluate import generate_evaluation_report
 from mislabel_audit import save_mislabel_report
 from utils import set_random_seed, log_message
@@ -39,85 +42,75 @@ def main():
     experiment_dir = create_experiment_directory()
     log_message(f"Experiment directory: {experiment_dir}")
     
-    # Step 1: Load Training Data
+    # Step 1: Load Data Generators (with Augmentation)
     print("\n" + "=" * 70)
-    log_message("STEP 1: Loading training data...")
+    log_message("STEP 1: Loading data with augmentation generators...")
     print("=" * 70)
     
-    train_dir = DATA_DIR / "train"
-    X_train, y_train, classes = load_images_from_flat_directory(train_dir)
-    log_message(f"Loaded {len(X_train)} training images")
-    log_message(f"Classes: {classes}")
+    train_generator, test_generator = load_data_generators(
+        train_dir='../data/train',
+        test_dir='../data/test',
+        target_size=(150, 150),
+        batch_size=BATCH_SIZE
+    )
+    log_message(f"Training samples per batch: {train_generator.batch_size}")
+    log_message(f"Total training batches: {len(train_generator)}")
+    log_message(f"Total test batches: {len(test_generator)}")
     
-    # Step 2: Load Test Data
+    # Step 2: Compute Class Weights (for imbalanced data)
     print("\n" + "=" * 70)
-    log_message("STEP 2: Loading test data...")
+    log_message("STEP 2: Computing class weights for imbalanced data...")
     print("=" * 70)
     
-    test_dir = DATA_DIR / "test"
-    X_test, y_test, _ = load_images_from_flat_directory(test_dir)
-    log_message(f"Loaded {len(X_test)} test images")
+    class_weight_dict = compute_class_weights(train_generator)
+    log_message(f"Class weights: {class_weight_dict}")
     
-    # Step 3: Preprocess Data
+    # Step 3: Create Model
     print("\n" + "=" * 70)
-    log_message("STEP 3: Preprocessing images...")
+    log_message("STEP 3: Creating model (max 2 convolutional layers)...")
     print("=" * 70)
     
-    X_train = preprocess_images(X_train)
-    X_test = preprocess_images(X_test)
-    log_message("Images normalized to [0, 1] range")
-    
-    # Convert labels to one-hot encoding
-    y_train_cat = to_categorical(y_train, num_classes=NUM_CLASSES)
-    y_test_cat = to_categorical(y_test, num_classes=NUM_CLASSES)
-    log_message(f"Labels converted to one-hot encoding (shape: {y_train_cat.shape})")
-    
-    # Step 4: Create Model
-    print("\n" + "=" * 70)
-    log_message("STEP 4: Creating model...")
-    print("=" * 70)
-    
-    model = create_cnn_model(num_classes=NUM_CLASSES)
-    log_message("CNN model created successfully")
+    model = create_cnn_model(input_shape=(150, 150, 3), num_classes=NUM_CLASSES)
+    log_message("CNN model created successfully with augmentation and noise layers")
     
     print("\nModel Architecture:")
     model.summary()
     
-    # Step 5: Train Model
+    # Step 4: Train Model with Data Augmentation
     print("\n" + "=" * 70)
-    log_message("STEP 5: Training model...")
+    log_message("STEP 4: Training model with data augmentation...")
     print("=" * 70)
     
-    log_message(f"Training for {EPOCHS} epochs with batch size {BATCH_SIZE}")
-    log_message(f"Using test set as validation (not ideal, but works for demo)")
+    log_message(f"Training for {EPOCHS} epochs with class weight balancing")
     
-    history = train_model(
+    history = train_model_with_generators(
         model,
-        X_train, y_train_cat,
-        X_test, y_test_cat,  # Using test as validation
+        train_generator,
+        test_generator,
         experiment_dir,
         epochs=EPOCHS,
-        batch_size=BATCH_SIZE
+        class_weight_dict=class_weight_dict
     )
     
     log_message("Training completed!")
     
-    # Step 6: Save Training History
+    # Step 5: Save Training History
     print("\n" + "=" * 70)
-    log_message("STEP 6: Saving training history...")
+    log_message("STEP 5: Saving training history...")
     print("=" * 70)
     
     save_training_history(history, experiment_dir)
     log_message(f"Training history saved to {experiment_dir / 'history.json'}")
     
-    # Step 7: Evaluate Model
+    # Step 6: Evaluate Model
     print("\n" + "=" * 70)
-    log_message("STEP 7: Evaluating model...")
+    log_message("STEP 6: Evaluating model...")
     print("=" * 70)
     
-    log_message("Generating predictions...")
-    y_pred_proba = model.predict(X_test)
+    log_message("Generating predictions on test set...")
+    y_pred_proba = model.predict(test_generator)
     y_pred = y_pred_proba.argmax(axis=1)
+    y_test = test_generator.classes
     
     log_message("Generating evaluation report...")
     generate_evaluation_report(
@@ -126,9 +119,9 @@ def main():
         experiment_dir
     )
     
-    # Step 8: Mislabel Audit
+    # Step 7: Mislabel Audit
     print("\n" + "=" * 70)
-    log_message("STEP 8: Running mislabel audit...")
+    log_message("STEP 7: Running mislabel audit...")
     print("=" * 70)
     
     suspicious_df, low_conf_df = save_mislabel_report(
@@ -136,17 +129,17 @@ def main():
         experiment_dir
     )
     
-    # Step 9: Summary
+    # Step 8: Summary
     print("\n" + "=" * 70)
     print("TRAINING PIPELINE COMPLETED!")
     print("=" * 70)
     
     print(f"\n📊 Results Summary:")
     print(f"   Experiment directory: {experiment_dir}")
-    print(f"   Training samples: {len(X_train)}")
-    print(f"   Test samples: {len(X_test)}")
+    print(f"   Training batches: {len(train_generator)}")
+    print(f"   Test batches: {len(test_generator)}")
     print(f"   Number of classes: {NUM_CLASSES}")
-    print(f"   Classes: {classes}")
+    print(f"   Classes: {list(test_generator.class_indices.keys())}")
     
     # Calculate final accuracy
     from sklearn.metrics import accuracy_score

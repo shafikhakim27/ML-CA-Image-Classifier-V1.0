@@ -55,8 +55,8 @@ def setup_callbacks(experiment_dir, patience=EARLY_STOPPING_PATIENCE):
     return callbacks
 
 
-def train_model(model, X_train, y_train, X_val, y_val, 
-                experiment_dir, epochs=EPOCHS, batch_size=32):
+def train_model(model, X_train, y_train, X_val, y_val,
+                experiment_dir, epochs=EPOCHS, batch_size=32, class_weight_dict=None):
     """
     Train the model.
     
@@ -69,6 +69,7 @@ def train_model(model, X_train, y_train, X_val, y_val,
         experiment_dir: Directory to save outputs
         epochs: Number of epochs
         batch_size: Batch size
+        class_weight_dict: Class weights for imbalanced data
         
     Returns:
         Training history
@@ -81,6 +82,41 @@ def train_model(model, X_train, y_train, X_val, y_val,
         epochs=epochs,
         batch_size=batch_size,
         callbacks=callbacks,
+        class_weight=class_weight_dict,
+        verbose=1
+    )
+    
+    return history
+
+
+def train_model_with_generators(model, train_generator, test_generator,
+                               experiment_dir, epochs=EPOCHS, class_weight_dict=None):
+    """
+    Train the model using data generators (with augmentation).
+    
+    Args:
+        model: Keras model to train
+        train_generator: Training data generator
+        test_generator: Test/validation data generator
+        experiment_dir: Directory to save outputs
+        epochs: Number of epochs
+        class_weight_dict: Class weights for handling imbalanced data
+        
+    Returns:
+        Training history
+    """
+    callbacks = setup_callbacks(experiment_dir)
+    
+    print(f"Starting training with Class Weights: {class_weight_dict}")
+    
+    history = model.fit(
+        train_generator,
+        steps_per_epoch=len(train_generator),
+        epochs=epochs,
+        validation_data=test_generator,
+        validation_steps=len(test_generator),
+        callbacks=callbacks,
+        class_weight=class_weight_dict,
         verbose=1
     )
     
@@ -98,8 +134,8 @@ def save_training_history(history, experiment_dir):
     experiment_dir = Path(experiment_dir)
     experiment_dir.mkdir(parents=True, exist_ok=True)
     
-    history_dict = {k: [float(v) if isinstance(v, np.floating) else v 
-                       for v in history.history[k]] 
+    history_dict = {k: [float(v) if isinstance(v, np.floating) else v
+                        for v in history.history[k]]
                     for k in history.history.keys()}
     
     with open(experiment_dir / 'history.json', 'w') as f:

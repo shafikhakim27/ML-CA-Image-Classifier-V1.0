@@ -51,6 +51,37 @@ TeamX/
    - ✅ Configuration is set for 4 classes: apple, banana, mixed, orange
    - Edit `src/config.py` to adjust hyperparameters if needed
 
+## Path Configuration
+
+All paths are **relative**, making the project portable across machines without modification:
+
+- **config.py** - Central hub managing all paths
+  - Uses `Path(__file__).parent.parent` for module imports
+  - Falls back to `Path.cwd()` for Jupyter notebooks
+- **All data references** go through `config.py` and `data.py`
+- **No hardcoded paths** - Works on any machine, any OS
+
+### Running from Different Contexts
+
+**Python script from TeamX/ root:**
+
+```bash
+python main.py
+```
+
+**Jupyter notebook from TeamX/src/:**
+
+- Open `Image_Classifier_Training.ipynb` in VS Code
+- Notebook automatically finds `data/` in relative path
+
+**After cloning from GitHub:**
+
+```bash
+git clone <repo-url>
+cd ML-CA-Image-Classifier-V1.0/TeamX
+python main.py  # Works immediately, no path config needed!
+```
+
 ## Usage
 
 ### Quick Start - Run Complete Pipeline
@@ -62,6 +93,7 @@ python main.py
 ```
 
 This will automatically:
+
 1. Load training and test data
 2. Preprocess images
 3. Create and train the CNN model

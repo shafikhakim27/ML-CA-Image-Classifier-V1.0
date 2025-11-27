@@ -1,13 +1,20 @@
 """
 Configuration module for Fruit Classifier project.
 Contains all hyperparameters and settings used across the project.
+Works with both relative imports and Jupyter notebooks.
 """
 
 import os
 from pathlib import Path
 
-# Project paths
-PROJECT_ROOT = Path(__file__).parent.parent
+# Project paths - Works whether run from src/ or from root
+# When imported as module: uses parent of src/ directory
+# When run in Jupyter from src/: looks for data/ in current directory
+try:
+    PROJECT_ROOT = Path(__file__).parent.parent  # For module imports
+except (NameError, AttributeError):
+    PROJECT_ROOT = Path.cwd()  # For Jupyter notebooks
+
 DATA_DIR = PROJECT_ROOT / "data"
 EXPERIMENTS_DIR = PROJECT_ROOT / "experiments"
 REPORT_DIR = PROJECT_ROOT / "report"

@@ -64,7 +64,7 @@ def plot_confusion_matrix(y_true, y_pred, class_names=CLASS_NAMES, save_path=Non
     for i in range(cm.shape[0]):
         for j in range(cm.shape[1]):
             ax.text(j, i, str(cm[i, j]), ha='center', va='center',
-                   color='white' if cm[i, j] > cm.max() / 2 else 'black')
+                    color='white' if cm[i, j] > cm.max() / 2 else 'black')
     
     plt.colorbar(im, ax=ax)
     plt.tight_layout()
