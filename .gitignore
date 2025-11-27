@@ -1,5 +1,4 @@
-# Large model files
-*.h5
+# Large model files (handled by Git LFS)
 *.pkl
 *.pth
 *.pt
