@@ -1,9 +1,0 @@
-sample_index,true_label,predicted_label,confidence_true_class,confidence_predicted_class,confidence_diff,true_class,predicted_class
-30,1,0,4.6597102e-05,0.9994814,0.99943477,banana,apple
-38,2,1,0.16320807,0.7972096,0.63400155,mixed,banana
-41,2,0,0.17075194,0.7969968,0.62624484,mixed,apple
-28,1,3,0.16066507,0.68556607,0.52490103,banana,orange
-37,2,3,0.12825604,0.5707095,0.4424535,mixed,orange
-9,0,1,0.2501259,0.63928974,0.38916382,apple,banana
-25,1,3,0.34046316,0.6340826,0.29361945,banana,orange
-31,1,3,0.3326472,0.5841835,0.2515363,banana,orange
