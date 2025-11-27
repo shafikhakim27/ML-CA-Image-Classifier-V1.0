@@ -101,6 +101,22 @@ This will automatically:
 5. Run mislabel audit
 6. Save all results to `experiments/` directory
 
+### Experiment Outputs
+
+When you run the training pipeline (either via `main.py` or the Jupyter notebook), results are saved to:
+
+```bash
+experiments/
+└─ notebook_YYYYMMDD_HHMMSS/   # Timestamped experiment folder
+   ├─ model_best.h5             # Best trained model
+   ├─ history.json              # Training/validation metrics per epoch
+   ├─ metrics.json              # Final accuracy & class distribution
+   ├─ training_history.png      # Accuracy & loss plots
+   └─ confusion_matrix.png      # Confusion matrix visualization
+```
+
+**Note:** The `experiments/` folder is **not tracked by Git** (.gitignore excludes it). This keeps the repository lightweight. Generate experiments locally by running the training pipeline.
+
 ### Manual Training (Advanced)
 
 If you want more control, you can use the modules directly:
