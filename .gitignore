@@ -31,6 +31,6 @@ experiments/
 *.joblib
 *.csv
 
-# Data (if tracked separately)
-TeamX/data/train/organized/
-TeamX/data/test/organized/
+# Data files - should be generated locally, not tracked
+TeamX/src/data/train/
+TeamX/src/data/test/
