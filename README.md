@@ -137,7 +137,7 @@ python src/mislabel_audit.py
 ## Dataset
 
 - **Training Set**: ~300 images
-- **Test Set**: ~100 images
+- **Test Set**: 60 images
 - **Classes**: 4 (apple, banana, orange, mixed)
 - **Image Format**: JPEG
 - **Location**: `data/train/` and `data/test/`
