@@ -1,0 +1,57 @@
+version: '3.8'
+
+services:
+  # Training service - trains the model
+  trainer:
+    build:
+      context: ..
+      dockerfile: Docker/Dockerfile
+    image: fruit-classifier:latest
+    container_name: fruit-trainer
+    volumes:
+      - ../data:/app/data
+      - ../experiments:/app/experiments
+      - ../src:/app/src
+    environment:
+      - TF_CPP_MIN_LOG_LEVEL=2
+    entrypoint: ["python", "src/Image_Classifier_Training.ipynb"]
+    command: []
+    # Uncomment to run automatically with docker-compose up
+    # profiles: ["training"]
+
+  # API service - serves predictions via HTTP (optional)
+  api:
+    build:
+      context: ..
+      dockerfile: Docker/Dockerfile
+    image: fruit-classifier:latest
+    container_name: fruit-api
+    ports:
+      - "5000:5000"
+    volumes:
+      - ../experiments:/app/experiments:ro
+      - ../src:/app/src:ro
+    environment:
+      - FLASK_APP=Docker/api.py
+      - TF_CPP_MIN_LOG_LEVEL=2
+    entrypoint: ["python", "Docker/api.py"]
+    profiles: ["api"]
+    # Uncomment to auto-start
+    # command: ["--host", "0.0.0.0"]
+
+  # Prediction service - batch prediction on mounted images
+  predictor:
+    build:
+      context: ..
+      dockerfile: Docker/Dockerfile
+    image: fruit-classifier:latest
+    container_name: fruit-predictor
+    volumes:
+      - ../experiments:/app/experiments:ro
+      - ../predictions:/app/predictions
+      - ../test_images:/app/test_images:ro
+    environment:
+      - TF_CPP_MIN_LOG_LEVEL=2
+    entrypoint: ["python", "standalone.py"]
+    command: ["--batch", "/app/test_images"]
+    profiles: ["predict"]

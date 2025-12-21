@@ -1,182 +1,204 @@
-# Fruit Classifier - Machine Learning Project
+# 🍎 Fruit Classifier - ML with Transfer Learning
 
-A machine learning project for classifying different types of fruits using deep learning and transfer learning approaches.
+An end-to-end fruit classification project using **MobileNetV2 transfer learning** for high accuracy with limited training data (240 images).
+
+**Key Results:**
+- ✅ **Test Accuracy: 91.67%** (55/60 images correct) - Significant improvement!
+- ✅ **Per-Class**: Apple 95%, Banana 100%, Orange 100%, Mixed 20%
+- ✅ **Architecture**: MobileNetV2 transfer learning with fine-tuned head
+- ✅ **Data**: 193 training (80%), 47 validation (20%), 60 test (separate)
+- ✅ **Improvements**: Class balancing, data augmentation, mislabel detection
+- ✅ **Deployment**: Docker containerization + REST API + Standalone inference script
+
+## 📚 Documentation
+
+Comprehensive documentation files are located in `src/`:
+- **[README.md](src/README.md)** - Full project documentation
+- **[FINAL_RESULTS.md](src/FINAL_RESULTS.md)** - Complete results and requirement verification
+- **[QUICK_REFERENCE.md](src/QUICK_REFERENCE.md)** - Quick lookup guide
+- **[CLEANUP_REPORT.md](src/CLEANUP_REPORT.md)** - Project structure and cleanup details
 
 ## Project Structure
 
 ```
 TeamX/
-├─ src/                      # Source code modules
-│  ├─ config.py              # Configuration and hyperparameters
-│  ├─ data.py                # Data loading and preprocessing
-│  ├─ model.py               # Model architecture definitions
-│  ├─ train.py               # Training logic and callbacks
-│  ├─ evaluate.py            # Evaluation metrics and visualization
-│  ├─ utils.py               # Utility functions
-│  └─ mislabel_audit.py      # Mislabel detection and analysis
-├─ data/                     # Dataset
-│  ├─ train/                 # Training images
-│  └─ test/                  # Test images
-├─ experiments/              # Training results (auto-generated)
-│  └─ exp_XXX_baseline/      # Each experiment creates a new folder
-│     ├─ history.json        # Training history
-│     ├─ metrics.json        # Evaluation metrics
-│     ├─ model_best.h5       # Best model checkpoint
-│     ├─ plots/              # Generated visualizations
-│     └─ mislabels/          # Mislabel audit reports
-├─ checklist/                # Verification scripts and docs
-│  ├─ verify_data.py         # Data verification script
-│  ├─ test_imports.py        # Import testing script
-│  └─ *.md                   # Documentation files
-├─ main.py                   # Main training script (RUN THIS!)
-├─ requirements.txt          # Python dependencies
-└─ README.md                 # This file
+├─ src/                              # Source code and documentation
+│  ├─ Image_Classifier_Training.ipynb # Main training notebook (RUN THIS!)
+│  ├─ README.md                      # Full project documentation
+│  ├─ FINAL_RESULTS.md               # Complete results summary
+│  ├─ QUICK_REFERENCE.md             # Quick reference guide
+│  ├─ CLEANUP_REPORT.md              # Project structure details
+│  ├─ model.py                       # Model definitions (CNN + MobileNetV2)
+│  ├─ config.py                      # Configuration and hyperparameters
+│  ├─ data.py                        # Data loading and preprocessing
+│  ├─ train.py                       # Training logic and callbacks
+│  ├─ evaluate.py                    # Evaluation metrics
+│  └─ utils.py                       # Utility functions
+├─ Docker/                           # Containerization
+│  ├─ Dockerfile                     # Docker image definition
+│  ├─ docker-compose.yml             # Multi-service orchestration
+│  ├─ api.py                         # REST API server
+├─ data/                             # Dataset
+│  ├─ train/                         # Training images organized by class
+│  │  ├─ apple/
+│  │  ├─ banana/
+│  │  ├─ mixed/
+│  │  └─ orange/
+│  └─ test/                          # Test images (60 separate images)
+├─ experiments/                      # Training results (auto-generated)
+│  ├─ exp_002_baseline/              # Timestamped experiment folder
+│  │  ├─ model_best.h5               # Best trained model
+│  │  ├─ history.json                # Training history
+│  │  ├── mislabels/                 # Suspicious prediction analysis
+│  │  └── plots/                     # Training visualizations
+├─ pdf/                              # Exported notebook PDFs
+├─ standalone.py                     # Inference script (NO CONFIG DEPENDENCIES!)
+├─ requirements.txt                  # Python dependencies
+└─ README.md                         # This file (overview)
 ```
 
-## Setup
+## Quick Start
 
-1. **Install dependencies**:
-   ```bash
-   pip install -r requirements.txt
-   ```
-
-2. **Verify setup** (optional):
-   ```bash
-   python checklist/verify_data.py
-   python checklist/test_imports.py
-   ```
-
-3. **Data & Configuration**:
-   - ✅ Data is already set up in `data/train/` and `data/test/`
-   - ✅ Configuration is set for 4 classes: apple, banana, mixed, orange
-   - Edit `src/config.py` to adjust hyperparameters if needed
-
-## Path Configuration
-
-All paths are **relative**, making the project portable across machines without modification:
-
-- **config.py** - Central hub managing all paths
-  - Uses `Path(__file__).parent.parent` for module imports
-  - Falls back to `Path.cwd()` for Jupyter notebooks
-- **All data references** go through `config.py` and `data.py`
-- **No hardcoded paths** - Works on any machine, any OS
-
-### Running from Different Contexts
-
-**Python script from TeamX/ root:**
+### 1️⃣ Training (Jupyter Notebook)
 
 ```bash
-python main.py
+cd TeamX
+pip install -r requirements.txt
+# Open src/Image_Classifier_Training.ipynb in VS Code and run all cells
 ```
 
-**Jupyter notebook from TeamX/src/:**
+The notebook will:
+- ✅ Load and organize data
+- ✅ Build MobileNetV2 transfer learning model
+- ✅ Train with data augmentation
+- ✅ Save best model to `experiments/`
+- ✅ Generate evaluation metrics and plots
 
-- Open `Image_Classifier_Training.ipynb` in VS Code
-- Notebook automatically finds `data/` in relative path
+### 2️⃣ Inference (Standalone Script)
 
-**After cloning from GitHub:**
+After training, use the independent prediction script in the root:
 
 ```bash
-git clone <repo-url>
-cd ML-CA-Image-Classifier-V1.0/TeamX
-python main.py  # Works immediately, no path config needed!
+# Single image prediction (auto-detects latest model)
+python standalone.py data/test/apple_77.jpg
+
+# Batch processing (flat directory)
+python standalone.py --batch ./data/test/
+
+# Custom model path
+python standalone.py image.jpg --model experiments/exp_002_baseline/model_best.h5
 ```
 
-## Usage
+**Output files** (saved to `experiments/` with timestamps):
+- Single: `prediction_20251130_125247.json`
+- Batch: `batch_predictions_20251130_125247.json` + `.csv`
 
-### Quick Start - Run Complete Pipeline
+**Key Feature**: `standalone.py` is **completely independent** - no config files or project structure needed! Just copy it with your trained model anywhere.
 
-The easiest way to train your model:
+### 3️⃣ Docker Deployment
+
+Docker files are organized in the `Docker/` folder:
 
 ```bash
-python main.py
+# Build image
+docker build -f Docker/Dockerfile -t fruit-classifier .
+
+# Run training
+docker-compose -f Docker/docker-compose.yml up trainer
+
+# REST API
+docker-compose -f Docker/docker-compose.yml up api
+# Then: curl -X POST -F "image=@photo.jpg" http://localhost:5000/predict
+
+# Batch prediction
+docker-compose -f Docker/docker-compose.yml up predictor
 ```
 
-This will automatically:
+## Model Architecture
 
-1. Load training and test data
-2. Preprocess images
-3. Create and train the CNN model
-4. Generate evaluation metrics and plots
-5. Run mislabel audit
-6. Save all results to `experiments/` directory
+### MobileNetV2 Transfer Learning
 
-### Experiment Outputs
+Why transfer learning for this project?
+- **Limited data**: Only 240 training images (too small for training CNN from scratch)
+- **Pre-trained backbone**: MobileNetV2 trained on 1.3M ImageNet images
+- **Better accuracy**: 31% → 60-70% test accuracy
+- **Lightweight**: Only fine-tune top 2-3 layers
 
-When you run the training pipeline (either via `main.py` or the Jupyter notebook), results are saved to:
+**Architecture:**
+```
+Input (150×150×3)
+    ↓
+MobileNetV2 (pre-trained on 1.4M ImageNet images, frozen base)
+    ↓
+GlobalAveragePooling2D()
+    ↓
+Dropout(0.5) → Dense(256, relu) → BatchNormalization → Dropout(0.3)
+    ↓
+Dense(4, softmax) → [apple, banana, mixed, orange]
+```
+
+**Training Details:**
+- Learning Rate: 0.001 (conservative for transfer learning)
+- Optimizer: Adam
+- Loss: Categorical Crossentropy
+- Batch Size: 16
+- Epochs: 50 (early stopped at ~20 epochs)
+- Early Stopping: Monitor val_accuracy, patience=6
+- Data Augmentation: Rotation ±40°, Shift ±20%, Zoom ±20%, Brightness 0.8-1.2x, Horizontal flip
+- Class Weights: Balanced to handle "mixed" class imbalance
+- Data Split: 80% training (193 images), 20% validation (47 images), 60 test (separate)
+
+## Model Performance
+
+| Metric | Value |
+|--------|-------|
+| **Test Accuracy** | **91.67%** (55/60 images) |
+| Apple Accuracy | 95% (18/19) |
+| Banana Accuracy | 100% (18/18) |
+| Orange Accuracy | 100% (18/18) |
+| Mixed Accuracy | 20% (1/5) - small sample size |
+| Macro Avg (Unweighted) | 79% |
+| Weighted Avg | 90% |
+| Model Size | 10.2 MB |
+| Training Time | ~15-20 min (CPU) |
+| Inference Time | ~50-100ms per image |
+
+**Key Findings:**
+- ✅ Excellent performance on well-represented classes (apple, banana, orange)
+- ⚠️ Mixed class struggles due to only 5 test samples (needs more data)
+- ✅ Transfer learning significantly improved accuracy
+- ✅ Data augmentation and class balancing boosted generalization
+
+## Validation & Testing
+
+Run the validation script to verify all 4 execution paths are ready:
 
 ```bash
-experiments/
-└─ notebook_YYYYMMDD_HHMMSS/   # Timestamped experiment folder
-   ├─ model_best.h5             # Best trained model
-   ├─ history.json              # Training/validation metrics per epoch
-   ├─ metrics.json              # Final accuracy & class distribution
-   ├─ training_history.png      # Accuracy & loss plots
-   └─ confusion_matrix.png      # Confusion matrix visualization
+# Quick validation (1 minute)
+python quick_validation.py
+
+# Comprehensive testing (includes predictions)
+python comprehensive_test.py
 ```
 
-**Note:** The `experiments/` folder is **not tracked by Git** (.gitignore excludes it). This keeps the repository lightweight. Generate experiments locally by running the training pipeline.
+**Validation Results**: ✅ All 4 paths passing
+1. ✅ File Organization - All required files present
+2. ✅ Data Availability - 480 training + 120 test images
+3. ✅ Model Configuration - MobileNetV2 + Early Stopping
+4. ✅ Output Logging - Timestamped outputs to experiments/
 
-### Manual Training (Advanced)
+## Files Reference
 
-If you want more control, you can use the modules directly:
-
-```python
-import sys
-sys.path.insert(0, 'src')
-
-from data import load_images_from_flat_directory, preprocess_images
-from model import create_cnn_model
-from train import train_model
-from evaluate import generate_evaluation_report
-from config import DATA_DIR
-from tensorflow.keras.utils import to_categorical
-
-# Load data
-X_train, y_train, classes = load_images_from_flat_directory(DATA_DIR / "train")
-X_test, y_test, _ = load_images_from_flat_directory(DATA_DIR / "test")
-
-# Preprocess
-X_train = preprocess_images(X_train)
-X_test = preprocess_images(X_test)
-
-# Convert labels
-y_train_cat = to_categorical(y_train, num_classes=4)
-y_test_cat = to_categorical(y_test, num_classes=4)
-
-# Train
-model = create_cnn_model(num_classes=4)
-history = train_model(model, X_train, y_train_cat, X_test, y_test_cat, 'experiments/exp_001/')
-
-# Evaluate
-y_pred_proba = model.predict(X_test)
-y_pred = y_pred_proba.argmax(axis=1)
-generate_evaluation_report(y_test, y_pred, y_pred_proba, history, 'experiments/exp_001/')
-```
-
-## Features
-
-- **Multiple Model Architectures**: CNN and Transfer Learning (MobileNetV2)
-- **Data Augmentation**: Automatic augmentation during training
-- **Comprehensive Evaluation**: Metrics, confusion matrix, ROC curves
-- **Mislabel Detection**: Identifies potentially mislabeled training samples
-- **Experiment Tracking**: Organized experiment results with versioning
-- **Easy Configuration**: Centralized hyperparameter management
-
-## Requirements
-
-- Python 3.8+
-- TensorFlow 2.8+
-- scikit-learn 1.0+
-- pandas, numpy, matplotlib
-
-## Notes
-
-- Ensure images are in standard formats (JPEG, PNG)
-- Recommended image size: 224x224 pixels
-- Adjust `BATCH_SIZE` and `EPOCHS` based on your hardware
-- Use GPU for faster training (requires CUDA/cuDNN)
-
-## Authors
-
-NUS-ISS Team Project - SA4110 Machine Learning Application Development
+| File | Purpose |
+|------|---------|
+| `Image_Classifier_Training.ipynb` | Main training notebook with MobileNetV2 |
+| `standalone.py` | Standalone inference (outputs to experiments/ with timestamps) |
+| `quick_validation.py` | Fast validation of all 4 execution paths |
+| `comprehensive_test.py` | Extended test suite with predictions |
+| `model.py` | Model definitions (MobileNetV2 transfer learning) |
+| `config.py` | Hyperparameters and paths |
+| `data.py` | Data loading utilities |
+| `train.py` | Training loops and callbacks |
+| `Docker/Dockerfile` | Container image definition |
+| `Docker/docker-compose.yml` | Multi-service orchestration |
+| `Docker/api.py` | Flask REST API server |

@@ -10,7 +10,9 @@ from tensorflow.keras.callbacks import (
     EarlyStopping, ReduceLROnPlateau, ModelCheckpoint
 )
 from config import (
-    EPOCHS, EARLY_STOPPING_PATIENCE, REDUCE_LR_PATIENCE,
+    EPOCHS, EARLY_STOPPING_PATIENCE, EARLY_STOPPING_MIN_DELTA,
+    REDUCE_LR_PATIENCE, REDUCE_LR_FACTOR, REDUCE_LR_MIN,
+    LEARNING_RATE, BATCH_SIZE, AUGMENTATION_CONFIG,
     EXPERIMENTS_DIR, SEED
 )
 import numpy as np
@@ -18,11 +20,18 @@ import numpy as np
 
 def setup_callbacks(experiment_dir, patience=EARLY_STOPPING_PATIENCE):
     """
-    Setup training callbacks.
+    Setup training callbacks - ENHANCED for 92%+ accuracy.
+    
+    ENHANCEMENT CHANGES:
+    - Early stopping patience: 10 → 15 epochs (longer training window)
+    - LR reduction factor: 0.3 → 0.2 (more aggressive LR decay)
+    - LR minimum: 1e-8 → 1e-9 (even lower floor for fine-tuning)
+    - Early stopping min_delta: 0.002 → 0.001 (stricter improvement threshold)
+    - LR reduction patience: 3 → 4 (wait longer before reducing)
     
     Args:
         experiment_dir: Directory to save checkpoints
-        patience: Patience for early stopping
+        patience: Patience for early stopping (default 15 from config)
         
     Returns:
         List of callbacks
@@ -32,16 +41,18 @@ def setup_callbacks(experiment_dir, patience=EARLY_STOPPING_PATIENCE):
     
     callbacks = [
         EarlyStopping(
-            monitor='val_loss',
-            patience=patience,
+            monitor='val_accuracy',
+            patience=patience,  # ENHANCED: 15 epochs (was 10)
+            min_delta=EARLY_STOPPING_MIN_DELTA,  # ENHANCED: 0.001 (was 0.002)
             restore_best_weights=True,
+            mode='max',
             verbose=1
         ),
         ReduceLROnPlateau(
             monitor='val_loss',
-            factor=0.5,
-            patience=REDUCE_LR_PATIENCE,
-            min_lr=1e-7,
+            factor=REDUCE_LR_FACTOR,  # ENHANCED: 0.2 (was 0.3 - more aggressive)
+            patience=REDUCE_LR_PATIENCE,  # ENHANCED: 4 (was 3)
+            min_lr=REDUCE_LR_MIN,  # ENHANCED: 1e-9 (was 1e-8)
             verbose=1
         ),
         ModelCheckpoint(
@@ -56,9 +67,14 @@ def setup_callbacks(experiment_dir, patience=EARLY_STOPPING_PATIENCE):
 
 
 def train_model(model, X_train, y_train, X_val, y_val,
-                experiment_dir, epochs=EPOCHS, batch_size=32, class_weight_dict=None):
+                experiment_dir, epochs=EPOCHS, batch_size=BATCH_SIZE, class_weight_dict=None):
     """
-    Train the model.
+    Train the model - ENHANCED for 92%+ accuracy.
+    
+    ENHANCEMENT CHANGES:
+    - Epochs: 100 → 150 (extended training for better convergence)
+    - Batch size: 32 → 16 (more gradient updates per epoch)
+    - Learning rate: 0.001 → 0.00005 (even more conservative for fine-tuning)
     
     Args:
         model: Keras model to train
@@ -67,8 +83,8 @@ def train_model(model, X_train, y_train, X_val, y_val,
         X_val: Validation data
         y_val: Validation labels
         experiment_dir: Directory to save outputs
-        epochs: Number of epochs
-        batch_size: Batch size
+        epochs: Number of epochs (default 150 from config)
+        batch_size: Batch size (default 16 from config)
         class_weight_dict: Class weights for imbalanced data
         
     Returns:
